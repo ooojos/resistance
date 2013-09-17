@@ -5,12 +5,18 @@ public class ResistanceGame
 	public static void main(String[] args)
 	{
 		int[] numSpiesIndex = {-1,-1,-1,-1,-1,2,2,3,3,3,4};
-		String[] nameIndex = {"Abbey","Beth","Carmen","Dee","Eleanor", "Frida","Georgina","Harriet","Isabel","Julie"};
+		String[] nameIndex = {"Abbey","Beth","Catherine","Dee","Erin", "Fiona","Georgina","Harriet","Isabel","Jasmine"};
 
 		Scanner cons = new Scanner(System.in);
-		System.out.println("How many players?");
+		System.out.println("How many Humans?");
+		int numHumans = cons.nextInt();
 
-		int numPlayers = cons.nextInt();
+
+		System.out.println("How many Robots?");
+
+		int numRobots = cons.nextInt();
+
+		int numPlayers = numHumans+numRobots;
 
 		System.out.println("Number of players is "+numPlayers);
 
@@ -34,9 +40,16 @@ public class ResistanceGame
 			spyIndex[determineSpy]=1;
 		}
 		
+		cons.nextLine();
+		for(int i = 0 ; i < numHumans ; i++){
+			System.out.println("Name of Human?");
+			String name = cons.nextLine();
 
-		for(int i = 0 ; i < numPlayers ; i++){
-			players[i] = new Player(nameIndex[i], spyIndex[i], numPlayers);
+			players[i] = new HumanPlayer(name, spyIndex[i], numPlayers);
+		}
+
+		for(int i = numHumans ; i < numPlayers; i++){
+			players[i] = new Player(nameIndex[i],spyIndex[i],numPlayers);
 			if(spyIndex[i] == 1){
 				for(int j=0;j<numPlayers;j++){
 					players[i].tableStatus[j] = spyIndex[j];
@@ -50,6 +63,7 @@ public class ResistanceGame
 			}
 		}
 
+		//TODO Shuffle seating
 
 		if(args.length !=0){ 
 			for(int i = 0;i<numPlayers;i++)System.out.println(players[i]);
@@ -68,7 +82,7 @@ public class ResistanceGame
 		int captain = goingFirst;
 		//ROUNDS
 		for(int round = 0; round <5; round++){
-			System.out.println("\nROUND "+round+":\n");
+			System.out.println("\nROUND "+round+": and Captain is "+players[captain].name+"\n");
 			int teamSize = missionSize[numPlayers][round];
 			
 			if(args.length != 0)System.out.println("Team size is "+teamSize);
@@ -79,11 +93,16 @@ public class ResistanceGame
 
 			while(proposalCounter < 5 && !missionGoing){
 				proposal = players[captain].proposeTeam(teamSize);
+				System.out.println("The proposal is:");
+				for(int i = 0 ; i < proposal.length;i++){
+					System.out.println(players[proposal[i]].name);
+				}
+				System.out.println();
 				int noVotes = 0;
 				for(int i = 0 ; i < numPlayers; i++){
 					noVotes += players[i].voteOnMission(proposal);
 				}
-				if(noVotes < numPlayers/2){
+				if(noVotes < numPlayers/2.0){
 				       missionGoing = true;
 				}
 				else{
@@ -108,10 +127,15 @@ public class ResistanceGame
 					if(missionActions[i]==1)fails++;
 				}
 
-				//TODO Round 4 double fails, for big games.
-				if(fails == 0)resScore++;
-				else spyScore++;
-	
+				if(round == 3 && numPlayers >= 7){
+					if(fails<2)resScore++;
+					else spyScore++;
+				}
+				else{
+					if(fails==0)resScore++;
+					else spyScore++;
+				}
+
 				System.out.println(succeeds+" Succeeds and "+fails+" fails");
 
 				boolean gameOver = false;
@@ -133,6 +157,8 @@ public class ResistanceGame
 				System.out.println("Too many Proposals; Evil wins");
 				System.exit(0);
 			}
+			captain++;
+			captain %= numPlayers;
 		}
 
 
